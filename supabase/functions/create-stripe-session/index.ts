@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
     const originUrl = req.headers.get("origin") ?? "http://localhost:3000";
 
     // Check if user has an active subscription
-    if (profile.subscription_plan === "premium") {
+    if (profile.subscription_plan && profile.subscription_plan !== "free") {
       // User has subscription - send them to Customer Portal
       const portalSession = await stripe.billingPortal.sessions.create({
         customer: stripeCustomerId,
