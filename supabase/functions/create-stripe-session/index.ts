@@ -107,7 +107,20 @@ Deno.serve(async (req) => {
 
     const originUrl = req.headers.get("origin") ?? "http://localhost:3000";
 
-    // Always create Checkout session to go to Stripe checkout page
+    // Check if user has an active subscription
+    if (profile.subscription_plan === "premium") {
+      // User has subscription - send them to Customer Portal
+      const portalSession = await stripe.billingPortal.sessions.create({
+        customer: stripeCustomerId,
+        return_url: `${originUrl}/profile`,
+      });
+
+      return new Response(JSON.stringify({ url: portalSession.url }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // No subscription - create Checkout session for new subscription
     const session = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
       line_items: [
